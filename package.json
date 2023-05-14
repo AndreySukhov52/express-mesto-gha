@@ -10,7 +10,7 @@
     "dev": "nodemon app.js"
   },
   "keywords": [],
-  "author": "Daria Krushelnitskaya",
+  "author": "Sukhov Andrey",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
