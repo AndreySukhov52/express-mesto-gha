@@ -10,6 +10,7 @@ const getCards = (req, res) => {
     .catch(() => res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' }));
 };
 
+/** Добавление карточки */
 const createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
