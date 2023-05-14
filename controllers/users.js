@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+/** eslint-disable max-len */
 const { StatusCodes } = require('http-status-codes');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -14,25 +14,9 @@ const getUsers = (req, res) => {
     });
 };
 
-// const getUserMe = (req, res) => {
-//   User.findById(req.user._id)
-//     .then((user) => {
-//       console.log(user);
-//       if (!user) {
-//         return res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден.' });
-//       }
-//       return res.status(StatusCodes.OK).send({ user });
-//     })
-//     .catch((err) => {
-//       if (err.name === 'CastError') {
-//         return res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
-//       }
-//       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-//     });
-// };
 const getUserMe = (req, res, next) => {
   User.findById(req.user._id)
-    .select('-password') // исключаем поле password из ответа
+    .select('-password') /** исключаем поле password из ответа */
     .then((user) => {
       if (!user) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: 'Пользователь с указанным _id не найден.' });
@@ -41,32 +25,8 @@ const getUserMe = (req, res, next) => {
     })
     .catch(next);
 };
-// if (err.name === 'CastError') {
-//   return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Переданы некорректные данные при создании пользователя' });
-// }
-// eslint-disable-next-line implicit-arrow-linebreak
-//         return res.status(StatusCodes.NOT_FOUND).json({ message: 'Пользователь с указанным _id не найден.' });
-//       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'На сервере произошла ошибка' }));
-// };
 
-// function getUserById(req, res, next) {
-//   User.findById(req.params.userId)
-//     .then((user) => {
-//       if (!user) {
-//         return res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден.' });
-//       }
-//       res.status(StatusCodes.OK).send({ user });
-//     })
-//     .catch((err) => {
-//       if (err.name === 'CastError') {
-//         res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
-//       }
-//       next(err);
-//       // return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-//     });
-// }
-
-// Получить данные пользователя по id
+/** Получить данные пользователя по id */
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
@@ -155,50 +115,8 @@ const login = (req, res, next) => {
     })
     .catch(next);
 };
-// const login = (req, res) => {
-//   const { email, password } = req.body;
 
-//   User.findOne({ email }).select('+password')
-//     // eslint-disable-next-line consistent-return
-//     .then((user) => {
-//       if (!user) {
-//         return res.status(StatusCodes.UNAUTHORIZED).send({ message: 'Неправильные почта или пароль' });
-//       }
-
-//       bcrypt.compare(password, user.password)
-//         // eslint-disable-next-line consistent-return
-//         .then((matched) => {
-//           if (!matched) {
-//             return res.status(StatusCodes.UNAUTHORIZED).send({ message: 'Неправильные почта или пароль' });
-//           }
-
-//           const token = jwt.sign(
-//             { _id: user._id },
-//             NODE_ENV === 'production' ? JWT_SECRET : 'secret-key',
-//             { expiresIn: '7d' },
-//           );
-
-//           res.send({ token });
-//         })
-//         .catch((err) => {
-//           console.log(err);
-//           res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-//         });
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-//     });
-// };
-/* .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
-        return res.status(StatusCodes.UNAUTHORIZED).send({ message: 'Ошибка авторизации' });
-      }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-    });
-}; */
-
-// Экспорт модулей
+/** Экспорт модулей */
 module.exports = {
   getUsers,
   createUser,

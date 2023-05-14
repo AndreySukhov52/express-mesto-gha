@@ -4,7 +4,7 @@ const {
   getUsers, getUserById, updateUser, updateAvatar, getUserMe,
 } = require('../controllers/users');
 
-// Роуты пользователя
+/** Роуты пользователя */
 userRouters.get('/', getUsers);
 userRouters.get('/:userId', celebrate({
   params: Joi.object().keys({

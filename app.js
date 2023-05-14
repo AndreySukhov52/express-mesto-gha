@@ -9,7 +9,7 @@ const auth = require('./middlewares/auth');
 
 const app = express();
 
-// подключаемся к серверу mongo
+/**  подключаемся к серверу mongo */
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(cookieParser());
 const { PORT = 3000 } = process.env;
 
-// подключаем мидлвары, роуты и всё остальное...
+/** подключаем мидлвары, роуты и всё остальное... */
 app.post(
   '/signin',
   celebrate({
@@ -44,21 +44,6 @@ app.post(
   }),
   createUser,
 );
-
-// app.use((req, res, next) => {
-//   if (req.path === '/signin' || req.path === '/signup') {
-//     next();
-//   } else {
-//     auth(req, res, next);
-//   }
-// });
-
-// app.use((req, res, next) => {
-//   if (req.path === '/signin' || req.path === '/signup') {
-//     return next();
-//   }
-//   return res.status(StatusCodes.UNAUTHORIZED).send({ message: 'Необходима авторизация' });
-// });
 
 app.use(errors());
 app.use(auth);

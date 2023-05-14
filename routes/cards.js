@@ -9,7 +9,7 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
-// Роуты карточек
+/**  Роуты карточек */
 cardRouters.get('/', getCards);
 cardRouters.delete('/:cardId', celebrate({
   params: Joi.object().keys({

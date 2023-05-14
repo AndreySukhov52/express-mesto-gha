@@ -89,7 +89,7 @@ const dislikeCard = (req, res) => {
     });
 };
 
-// Экспорт модулей
+/** Экспорт модулей */
 module.exports = {
   getCards,
   createCard,
