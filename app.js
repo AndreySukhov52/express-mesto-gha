@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { StatusCodes } = require('http-status-codes');
+//const { StatusCodes } = require('http-status-codes');
 const routes = require('./routes/index');
 
 const app = express();
@@ -24,12 +24,6 @@ app.use((req, res, next) => {
 });
 
 app.use(routes);
-
-const handleNotFound = (req, res) => {
-  res.status(StatusCodes.NOT_FOUND).send({ message: 'Page Not Found' });
-};
-
-app.use('*', handleNotFound);
 
 app.listen(PORT, () => {
   console.log(`app слушает порт: ${PORT}`);
