@@ -1,14 +1,16 @@
-const router = require('express').Router();
+const express = require('express');
+
+const router = express.Router();
+
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
-const { StatusCodes } = require('http-status-codes');
+const auth = require('../middlewares/auth');
+const NotFoundError = require('../errors/notFound-error');
 
-router.use('/users', userRoutes);
-router.use('/cards', cardRoutes);
-router.use('*', handleNotFound);
-
-const handleNotFound = (req, res) => {
-  res.status(StatusCodes.NOT_FOUND).send({ message: 'Page Not Found' });
-};
+router.use('/users', auth, userRoutes);
+router.use('/cards', auth, cardRoutes);
+router.use('*', auth, () => {
+  throw new NotFoundError('Запрашиваемый ресурс не найден');
+});
 
 module.exports = router;
