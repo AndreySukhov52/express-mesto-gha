@@ -1,4 +1,6 @@
 const express = require('express');
+const { createUser, login } = require('./controllers/users');
+const { validationSignIn, validationSignUp } = require('./middlewares/validation');
 
 const router = express.Router();
 
@@ -12,5 +14,7 @@ router.use('/cards', auth, cardRoutes);
 router.use('*', auth, () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
+app.post('/signup', validationSignUp, createUser);
+app.post('/signin', validationSignIn, login);
 
 module.exports = router;

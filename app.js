@@ -5,8 +5,6 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const routes = require('./routes/index');
 const errorHandler = require('./middlewares/errorHandler');
-const { createUser, login } = require('./controllers/users');
-const { validationSignIn, validationSignUp } = require('./middlewares/validation');
 
 const app = express();
 
@@ -24,9 +22,6 @@ app.use(cookieParser());
 const { PORT = 3000 } = process.env;
 
 /** подключаем мидлвары, роуты и всё остальное... */
-
-app.post('/signup', validationSignUp, createUser);
-app.post('/signin', validationSignIn, login);
 
 app.use(limiter);
 
