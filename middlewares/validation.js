@@ -1,14 +1,12 @@
 const { celebrate, Joi } = require('celebrate');
 const validator = require('validator');
 const BadRequestError = require('../errors/badRequest-error');
-// const BAD_REQUEST = require('http-errors');
 
 const validationUrl = (url) => {
   const isValid = validator.isURL(url);
   if (isValid) {
     return url;
   }
-  // throw new BAD_REQUEST('Невалидный URL');
   throw new BadRequestError('Невалидный URL');
 };
 
@@ -65,13 +63,13 @@ const validationSignUp = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(/https?:\/\/(www)?[0-9a-z\-._~:/?#[\]@!$&'()*+,;=]+#?$/im),
+    avatar: Joi.string().pattern(/^(https?:\/\/)(www\.)?(?!-)[-a-zA-Z0-9@:%._~#=]{1,249}(?<!-)\.[A-Za-z]{2,6}([-a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=]*)#?$/im),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
 });
 
-// когда существующий пользователь логинится
+/** когда существующий пользователь логинится */
 const validationSignIn = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),

@@ -11,8 +11,8 @@ const NotFoundError = require('../errors/notFound-error');
 
 router.use('/users', auth, userRoutes);
 router.use('/cards', auth, cardRoutes);
-app.post('/signup', validationSignUp, createUser);
-app.post('/signin', validationSignIn, login);
+router.post('/signup', validationSignUp, createUser);
+router.post('/signin', validationSignIn, login);
 
 // router.use(('*', auth, (req, res, next) => {
 //   next(new NotFoundError('Запрашиваемый ресурс не найден'));
