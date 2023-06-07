@@ -1,3 +1,4 @@
+// const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const Card = require('../models/card');
 const BadRequestError = require('../errors/badRequest-error');
@@ -12,7 +13,6 @@ const getCards = (req, res, next) => {
     .catch(next);
 };
 
-/** Добавление карточки */
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
@@ -28,7 +28,7 @@ const createCard = (req, res, next) => {
     });
 };
 
-/** Удаление карточки */
+// Удаление карточки
 function deleteCardById(req, res, next) {
   const { cardId } = req.params;
   Card.findById(cardId)
@@ -89,8 +89,7 @@ const dislikeCard = (req, res, next) => {
       }
     });
 };
-
-/** Экспорт модулей */
+// Экспорт модулей
 module.exports = {
   getCards,
   createCard,
