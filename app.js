@@ -1,44 +1,27 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const { errors } = require('celebrate');
-const cookieParser = require('cookie-parser');
-const rateLimit = require('express-rate-limit');
-const routes = require('./routes/index');
-const errorHandler = require('./middlewares/errorHandler');
-const { createUser, login } = require('./controllers/users');
-// const auth = require('./middlewares/auth');
-const { validationSignIn, validationSignUp } = require('./middlewares/validation');
+const express = require('express')
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+const helmet = require('helmet')
+const cookieParser = require('cookie-parser')
+const { errors } = require('celebrate')
+const routes = require('./routes')
+const errorsHandler = require('./middlewares/handelError')
 
-const app = express();
+require('dotenv').config()
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // за 15 минут
-  max: 100, // можно совершить максимум 100 запросов с одного IP
-});
-// подключаемся к серверу mongo
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
-  useNewUrlParser: true,
-  // suseUnifiedTopology: true,
-});
+const { PORT = 3000, DB_PATH = 'mongodb://127.0.0.1:27017/mestodb' } =
+  process.env
 
-app.use(express.json());
-app.use(cookieParser());
-const { PORT = 3000 } = process.env;
+const app = express()
 
-// подключаем мидлвары, роуты и всё остальное...
+app.use(helmet())
+app.use(bodyParser.json())
+app.use(cookieParser())
+app.use(routes)
+app.use(errors())
+app.use(errorsHandler)
 
-app.post('/signup', validationSignUp, createUser);
-app.post('/signin', validationSignIn, login);
-
-app.use(limiter);
-// app.use(auth);
-
-app.use(routes);
-
-app.use(errors());
-
-app.use(errorHandler);
-
+mongoose.connect(DB_PATH)
 app.listen(PORT, () => {
-  console.log(`app слушает порт: ${PORT}`);
-});
+  console.log(`App listening on port ${PORT}`)
+})

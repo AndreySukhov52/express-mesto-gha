@@ -1,90 +1,93 @@
-const { celebrate, Joi } = require('celebrate');
-const validator = require('validator');
-const BadRequestError = require('../errors/badRequest-error');
+const { celebrate, Joi } = require('celebrate')
+const { BAD_REQUEST, StatusCodeError } = require('../utils/errors')
+
+const reIsUrl =
+  /^(https?:\/\/)(www\.)?(?!-)[-a-zA-Z0-9@:%._~#=]{1,249}(?<!-)\.[A-Za-z]{2,6}([-a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=]*)#?$/
 
 const validationUrl = (url) => {
-  const isValid = validator.isURL(url);
-  if (isValid) {
-    return url;
+  if (reIsUrl.test(url)) {
+    return url
   }
-  throw new BadRequestError('Невалидный URL');
-};
+  throw new StatusCodeError(BAD_REQUEST)
+}
 
 const validationLogin = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
+    email: Joi.string()
+      .required()
+      .email()
+      .message('Поле email должно быть заполнено'),
+    password: Joi.string()
+      .required()
+      .min(8)
+      .message('Поле пароль должно быть заполнено'),
   }),
-});
+})
 
 const validationCreateUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().custom(validationUrl),
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    email: Joi.string()
+      .required()
+      .email()
+      .message('Поле email должно быть заполнено'),
+    password: Joi.string()
+      .required()
+      .min(8)
+      .message('Поле пароль должно быть заполнено'),
   }),
-});
+})
 
 const validationUpdateUser = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
-    about: Joi.string().min(2).max(30).required(),
+    name: Joi.string()
+      .required()
+      .min(2)
+      .max(30)
+      .message(
+        'Имя пользователя должно быть заполнено и содержать не менее 2 и не более 30 миволов'
+      ),
+    about: Joi.string()
+      .required()
+      .min(2)
+      .max(30)
+      .message(
+        'Информация о пользователе должна быть заполнена и содержать не менее 2 и не более 30 миволов'
+      ),
   }),
-});
+})
 
 const validationUpdateAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().custom(validationUrl),
+    avatar: Joi.string()
+      .required()
+      .custom(validationUrl)
+      .message('Введите корректный URL картинки'),
   }),
-});
+})
 
-const validationUserId = celebrate({
-  params: Joi.object().keys({
-    userId: Joi.string().required().hex().length(24),
-  }),
-});
+const validationId = (schema = 'cardId') =>
+  celebrate({
+    params: Joi.object().keys({
+      [schema]: Joi.string().required().hex().length(24),
+    }),
+  })
 
 const validationCreateCard = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
+    name: Joi.string().min(2).max(30).required(),
     link: Joi.string().required().custom(validationUrl),
   }),
-});
-
-const validationCardId = celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required().hex().length(24),
-  }),
-});
-
-const validationSignUp = celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(/^(https?:\/\/)(www\.)?(?!-)[-a-zA-Z0-9@:%._~#=]{1,249}(?<!-)\.[A-Za-z]{2,6}([-a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=]*)#?$/im),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-});
-
-/** когда существующий пользователь логинится */
-const validationSignIn = celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-});
+})
 
 module.exports = {
   validationLogin,
   validationCreateUser,
   validationUpdateUser,
   validationUpdateAvatar,
-  validationUserId,
+  validationId,
   validationCreateCard,
-  validationCardId,
-  validationSignUp,
-  validationSignIn,
-};
+  reIsUrl,
+}
