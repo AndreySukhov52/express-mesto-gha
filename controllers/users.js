@@ -1,101 +1,139 @@
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-const Users = require('../models/user')
-const { handleError } = require('../utils/errors')
+/* eslint-disable max-len */
+const { StatusCodes } = require('http-status-codes');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+const NotFoundError = require('../errors/notFound-error');
+const BadRequestError = require('../errors/badRequest-error');
+const ConflictError = require('../errors/conflict-error');
 
-const getUsers = (req, res, next) =>
-  Users.find({})
-    .then((users) => res.send(users))
-    .catch((err) => handleError(err, next))
+const { NODE_ENV, JWT_SECRET } = process.env;
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.status(StatusCodes.OK).send(users))
+    .catch(next);
+};
 
-const getUser = (req, res, next) => {
-  const { userId } = req.params
-  return Users.findById(userId)
-    .orFail()
-    .then((user) => {
-      res.send(user)
+function getUserMe(req, res, next) {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new NotFoundError('Пользователь не найден');
     })
-    .catch((err) => handleError(err, next))
+    .then((user) => res.status(200).send(user))
+    .catch(next);
 }
+
+// Получить данные пользователя по id
+const getUserById = (req, res, next) => {
+  const { userId } = req.params;
+  User.findById(userId)
+    .then((user) => {
+      if (user) {
+        res.send(user);
+      } else {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные при поиске пользователя'));
+      }
+      return next(err);
+    });
+};
 
 const createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) =>
-      Users.create({ name, about, avatar, email, password: hash })
-    )
-    .then((user) =>
-      res.status(201).send({
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-        email: user.email,
-      })
-    )
-    .catch((err) => handleError(err, next))
-}
+  const {
+    name, about, avatar, email,
+  } = req.body;
 
-const updateProfile = (req, res, next) => {
-  const { name, about } = req.body
-  return Users.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
-    { new: true, runValidators: true }
-  )
-    .orFail()
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, next))
-}
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => {
+      User
+        .create({
+          name, about, avatar, email, password: hash,
+        })
+        .then((user) => res.status(StatusCodes.CREATED).send(user))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            next(new BadRequestError('Переданы некорректные данные при создании пользователя '));
+          } else if (err.code === 11000) {
+            next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
+          } else {
+            next(err);
+          }
+        });
+    })
+    .catch(next);
+};
+
+const updateUser = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
+      }
+      return res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
+      }
+    });
+};
 
 const updateAvatar = (req, res, next) => {
-  const { avatar } = req.body
-  return Users.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    { new: true, runValidators: true }
-  )
-    .orFail()
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, next))
-}
-
-const getCurrentUser = (req, res, next) =>
-  Users.findById(req.user._id)
-    .orFail()
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, next))
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
+      }
+      return res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
+      } else {
+        next(err);
+      }
+    });
+};
 
 const login = (req, res, next) => {
-  const { email, password } = req.body
-  const { NODE_ENV, JWT_SECRET } = process.env
-
-  return Users.findUserByCredentials(email, password)
+  const { email, password } = req.body;
+  User
+    .findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        NODE_ENV === 'production'
-          ? JWT_SECRET
-          : '85353ab2edfacd45adcb8a9b27c3187df2663355dba48fdb23d0c2184246881a',
-        { expiresIn: '7d' }
-      )
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      // const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-key', { expiresIn: '7d' });
+
+      // Рабочий код
       res
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-          sameSite: true,
+          sameSite: 'none',
+          secure: true,
+          // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Lax',
+          // secure: process.env.NODE_ENV === 'production',
         })
-        .send({ message: `Welcome back, ${user.name}` })
+        // .send({ token });
+        .send(user.toJSON());
     })
-    .catch((err) => handleError(err, next))
-}
+    .catch(next);
+};
 
+// Экспорт модулей
 module.exports = {
   getUsers,
-  getUser,
   createUser,
-  updateProfile,
+  getUserById,
   updateAvatar,
-  getCurrentUser,
+  updateUser,
   login,
-}
+  getUserMe,
+};
